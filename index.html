@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Träningsschema – Viktnedgång</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  header h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  header p { font-size: 0.85rem; opacity: 0.9; }
+  nav {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    position: sticky;
+    top: 68px;
+    z-index: 90;
+  }
+  nav button {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.85rem 0.5rem;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+  }
+  nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(59,130,246,0.08);
+  }
+  .section { display: none; padding: 1rem; max-width: 900px; margin: 0 auto; }
+  .section.active { display: block; }
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+  }
+  h2 { font-size: 1.25rem; margin-bottom: 0.75rem; color: var(--accent2); }
+  h3 { font-size: 1.05rem; margin: 1rem 0 0.5rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 1rem;
+  }
+  th, td {
+    padding: 0.6rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: #0f172a; color: var(--accent); }
+  .exercise-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .exercise {
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .exercise img {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #fff;
+  }
+  .exercise-info {
+    padding: 1rem;
+  }
+  .exercise-info h3 { margin-top: 0; color: var(--accent); }
+  .tips ul { padding-left: 1.2rem; }
+  .tips li { margin-bottom: 0.4rem; }
+  .highlight { background: rgba(16,185,129,0.12); border-left: 4px solid var(--accent2); padding: 0.75rem; border-radius: 0 8px 8px 0; margin: 0.75rem 0; }
+  .timer-display {
+    font-size: 4rem;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    margin: 1rem 0;
+    color: var(--accent);
+  }
+  .timer-controls, .timer-presets {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
+  }
+  .timer-controls button, .timer-presets button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .timer-controls button:nth-child(2) { background: #f59e0b; }
+  .timer-controls button:nth-child(3) { background: #ef4444; }
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .checklist-item input { width: 1.2rem; height: 1.2rem; cursor: pointer; }
+  .checklist-item.done { opacity: 0.6; text-decoration: line-through; }
+  .progress-bar {
+    height: 8px;
+    background: #334155;
+    border-radius: 4px;
+    margin: 0.5rem 0 1rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent2);
+    width: 0%;
+    transition: width 0.3s;
+  }
+  @media (min-width: 700px) {
+    .exercise-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Träningsschema för viktnedgång</h1>
+  <p>42 år • 190 cm • 98 kg • Styrka + Crosstrainer</p>
+</header>
+
+<nav>
+  <button class="active" onclick="show('schema')">Veckoschema</button>
+  <button onclick="show('styrka')">Styrkeövningar</button>
+  <button onclick="show('cardio')">Crosstrainer</button>
+  <button onclick="show('tips')">Tips</button>
+  <button onclick="show('timer')">Timer & Checklista</button>
+</nav>
+
+<!-- VECKOSCHEMA -->
+<div id="schema" class="section active">
+  <div class="card">
+    <h2>Veckoschema</h2>
+    <p>Kombination av styrketräning (bevara muskler) och crosstrainer (kaloriförbränning). Totalt ca 4–5 timmar/vecka.</p>
+    <table>
+      <thead>
+        <tr><th>Dag</th><th>Träning</th><th>Tid</th><th>Kommentar</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Måndag</td><td><strong>Styrka – Helkropp</strong></td><td>45–55 min</td><td>Fokus på stora övningar</td></tr>
+        <tr><td>Tisdag</td><td><strong>Crosstrainer</strong></td><td>35–45 min</td><td>Måttlig intensitet</td></tr>
+        <tr><td>Onsdag</td><td><strong>Styrka – Helkropp</strong></td><td>45–55 min</td><td>Samma upplägg som måndag</td></tr>
+        <tr><td>Torsdag</td><td><strong>Crosstrainer</strong></td><td>30–40 min</td><td>Gärna intervaller</td></tr>
+        <tr><td>Fredag</td><td><strong>Styrka – Helkropp</strong></td><td>40–50 min</td><td>Lite kortare/lättare</td></tr>
+        <tr><td>Lördag</td><td><strong>Crosstrainer</strong></td><td>40–50 min</td><td>Lugnare eller intervaller</td></tr>
+        <tr><td>Söndag</td><td><strong>Vila</strong></td><td>–</td><td>Eller lätt promenad</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- STYRKEÖVNINGAR -->
+<div id="styrka" class="section">
+  <div class="card">
+    <h2>Styrkepass – Helkropp</h2>
+    <p><strong>3 set</strong> per övning. Vila 60–90 sekunder mellan set. Börja med vikter du klarar 8–12 reps med god teknik.</p>
+  </div>
+
+  <div class="exercise-grid">
+    <div class="exercise">
+      <img src="imagine_images/NPLNt.jpg" alt="Knäböj">
+      <div class="exercise-info">
+        <h3>1. Knäböj (eller benpress)</h3>
+        <p><strong>8–12 reps</strong> • Djupt och kontrollerat. Knän över tår, bröst upp.</p>
+      </div>
+    </div>
+
+    <div class="exercise">
+      <img src="imagine_images/PNlXB.jpg" alt="Marklyft">
+      <div class="exercise-info">
+        <h3>2. Marklyft / RDL</h3>
+        <p><strong>8–12 reps</strong> • Neutral rygg, höftgångjärn, vikten nära kroppen.</p>
+      </div>
+    </div>
+
+    <div class="exercise">
+      <img src="imagine_images/fIV1c.jpg" alt="Bänkpress">
+      <div class="exercise-info">
+        <h3>3. Bänkpress (hantlar)</h3>
+        <p><strong>8–12 reps</strong> • Kontrollerad sänkning till bröstet, armbågar ca 45°.</p>
+      </div>
+    </div>
+
+    <div class="exercise">
+      <img src="imagine_images/De20e.jpg" alt="Rodd">
+      <div class="exercise-info">
+        <h3>4. Rodd (kabel eller hantlar)</h3>
+        <p><strong>8–12 reps</strong> • Dra till magen, ryggen rak, armbågar nära kroppen.</p>
+      </div>
+    </div>
+
+    <div class="exercise">
+      <img src="imagine_images/W6WHy.jpg" alt="Axelpress">
+      <div class="exercise-info">
+        <h3>5. Axelpress (hantlar)</h3>
+        <p><strong>8–12 reps</strong> • Pressa kontrollerat uppåt, core spänd.</p>
+      </div>
+    </div>
+
+    <div class="exercise">
+      <img src="imagine_images/K1pmT.jpg" alt="Utfall">
+      <div class="exercise-info">
+        <h3>6. Utfall</h3>
+        <p><strong>8–10 reps/ben</strong> • Framre knä över fotled, upprätt överkropp.</p>
+      </div>
+    </div>
+
+    <div class="exercise">
+      <img src="imagine_images/D179Z.jpg" alt="Plankan">
+      <div class="exercise-info">
+        <h3>7. Plankan</h3>
+        <p><strong>30–45 sekunder</strong> • Kroppen rak från huvud till hälar, core spänd.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CROSSTRAINER -->
+<div id="cardio" class="section">
+  <div class="card">
+    <h2>Crosstrainer-pass</h2>
+    <div class="highlight">
+      <strong>Måttligt pass</strong> (tisdag & lördag)<br>
+      5 min uppvärmning → 25–35 min i jämn takt (kunna prata i korta meningar) → 5 min nedvarvning
+    </div>
+    <div class="highlight">
+      <strong>Intervallpass</strong> (torsdag)<br>
+      5 min uppvärmning → 8–10 × (1 min hårt + 2 min lugnt) → 5 min nedvarvning
+    </div>
+    <p><strong>Tips:</strong> Höj motståndet istället för bara farten – det bränner mer och belastar lederna mindre.</p>
+    <p style="margin-top:0.5rem;">Ungefärlig förbränning vid 98 kg: <strong>300–380 kcal</strong> på 30 min måttligt.</p>
+  </div>
+</div>
+
+<!-- TIMER & CHECKLISTA -->
+<div id="timer" class="section">
+  <div class="card">
+    <h2>Vila-timer</h2>
+    <div class="timer-display" id="timerDisplay">01:00</div>
+    <div class="timer-presets">
+      <button onclick="setTimer(45)">45s</button>
+      <button onclick="setTimer(60)">60s</button>
+      <button onclick="setTimer(90)">90s</button>
+      <button onclick="setTimer(120)">2 min</button>
+    </div>
+    <div class="timer-controls">
+      <button onclick="startTimer()">Start</button>
+      <button onclick="pauseTimer()">Pausa</button>
+      <button onclick="resetTimer()">Reset</button>
+    </div>
+    <p style="text-align:center; font-size:0.85rem; color:var(--muted); margin-top:0.5rem;">Använd för vila mellan set (60–90 sek rekommenderas)</p>
+  </div>
+
+  <div class="card">
+    <h2>Veckochecklista</h2>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="checklistContainer"></div>
+    <button onclick="resetChecklist()" style="margin-top:1rem; padding:0.6rem 1rem; background:#64748b; color:white; border:none; border-radius:8px; cursor:pointer;">Återställ veckan</button>
+    <p style="font-size:0.8rem; color:var(--muted); margin-top:0.5rem;">Sparar automatiskt i webbläsaren</p>
+  </div>
+</div>
+
+<!-- TIPS -->
+<div id="tips" class="section">
+  <div class="card tips">
+    <h2>Viktiga tips</h2>
+    <ul>
+      <li><strong>Protein:</strong> Sikta på ca 1,6–2,2 g protein per kg kroppsvikt (ca 160–200 g/dag) för att bevara muskler.</li>
+      <li><strong>Kaloriunderskott:</strong> Ungefär 300–500 kcal under underhållsmängden ger lagom takt (ca 0,3–0,5 kg/vecka).</li>
+      <li>Börja inte för hårt. 3–4 pass i veckan totalt är bättre än att köra 6 dagar och bli utbränd.</li>
+      <li>Om knän eller rygg känns ömma – byt till maskiner (benpress, sittande rodd osv.).</li>
+    </ul>
+    <div class="highlight" style="margin-top:1rem;">
+      Kost är det viktigaste för viktnedgång. Träning är ett starkt komplement som förbättrar kroppssammansättningen och gör resultaten mer hållbara.
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// === TIMER ===
+let timerSeconds = 60;
+let timerInterval = null;
+let timerRunning = false;
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  document.getElementById('timerDisplay').textContent = 
+    `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+}
+
+function setTimer(sec) {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = sec;
+  updateTimerDisplay();
+}
+
+function startTimer() {
+  if (timerRunning) return;
+  timerRunning = true;
+  timerInterval = setInterval(() => {
+    if (timerSeconds > 0) {
+      timerSeconds--;
+      updateTimerDisplay();
+    } else {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      document.getElementById('timerDisplay').textContent = "KLART!";
+      try { new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA').play(); } catch(e) {}
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+}
+
+function resetTimer() {
+  pauseTimer();
+  timerSeconds = 60;
+  updateTimerDisplay();
+}
+
+// === CHECKLISTA ===
+const days = [
+  { id: 'mon', name: 'Måndag', type: 'Styrka – Helkropp' },
+  { id: 'tue', name: 'Tisdag', type: 'Crosstrainer' },
+  { id: 'wed', name: 'Onsdag', type: 'Styrka – Helkropp' },
+  { id: 'thu', name: 'Torsdag', type: 'Crosstrainer (intervaller)' },
+  { id: 'fri', name: 'Fredag', type: 'Styrka – Helkropp' },
+  { id: 'sat', name: 'Lördag', type: 'Crosstrainer' },
+  { id: 'sun', name: 'Söndag', type: 'Vila / Promenad' }
+];
+
+function loadChecklist() {
+  const container = document.getElementById('checklistContainer');
+  container.innerHTML = '';
+  const saved = JSON.parse(localStorage.getItem('trainingChecklist') || '{}');
+  
+  days.forEach(day => {
+    const checked = saved[day.id] || false;
+    const div = document.createElement('label');
+    div.className = 'checklist-item' + (checked ? ' done' : '');
+    div.innerHTML = `
+      <input type="checkbox" data-day="${day.id}" ${checked ? 'checked' : ''}>
+      <div>
+        <strong>${day.name}</strong><br>
+        <span style="font-size:0.85rem; color:var(--muted);">${day.type}</span>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll('input').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const dayId = cb.dataset.day;
+      const current = JSON.parse(localStorage.getItem('trainingChecklist') || '{}');
+      current[dayId] = cb.checked;
+      localStorage.setItem('trainingChecklist', JSON.stringify(current));
+      cb.closest('.checklist-item').classList.toggle('done', cb.checked);
+      updateProgress();
+    });
+  });
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const saved = JSON.parse(localStorage.getItem('trainingChecklist') || '{}');
+  const done = days.filter(d => saved[d.id]).length;
+  const percent = Math.round((done / days.length) * 100);
+  document.getElementById('progressFill').style.width = percent + '%';
+}
+
+function resetChecklist() {
+  if (confirm('Återställa checklistan för veckan?')) {
+    localStorage.removeItem('trainingChecklist');
+    loadChecklist();
+  }
+}
+
+// Init
+updateTimerDisplay();
+loadChecklist();
+</script>
+
+</body>
+</html>
